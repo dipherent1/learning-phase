@@ -27,7 +27,9 @@ func RemoveBook() {
 	fmt.Print("Enter book ID to remove: ")
 	fmt.Scanln(&id)
 
-	library.RemoveBook(id)
+	if e:=library.RemoveBook(id); e != nil{
+		fmt.Println("Error",e)
+	}
 
 }
 
@@ -96,7 +98,9 @@ func CreateMember(){
 	
 	var BorrowedBooks []models.Book 
 
-	library.CreateMember(models.Member{Id: Id, Name: Name, BorrowedBooks: BorrowedBooks})
+	if e:=library.CreateMember(models.Member{Id: Id, Name: Name, BorrowedBooks: BorrowedBooks}); e!=nil{
+		fmt.Println("Error",e)
+	}
 	
 
 }

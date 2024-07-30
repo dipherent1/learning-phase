@@ -14,7 +14,8 @@ func main() {
 		fmt.Println("4. Return a book")
 		fmt.Println("5. List all available books")
 		fmt.Println("6. List all borrowed books by a member")
-		fmt.Println("7. Exit")
+		fmt.Println("7. Create member")
+		fmt.Println("8. Exit")
 
 		var choice int
 		fmt.Print("Enter your choice: ")

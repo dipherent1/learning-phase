@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"log"
+	// "log"
 	"tskmgr/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,46 +21,93 @@ func NewTaskService(collection *mongo.Collection) *TaskService {
 }
 
 // CreateTask inserts a new task into the MongoDB collection
-func (ts *TaskService) CreateTask(task models.Task) {
+func (ts *TaskService) CreateTask(task models.Task) error {
 	task.Id = primitive.NewObjectID()
 	_, err := ts.taskCollection.InsertOne(context.TODO(), task)
+
 	if err != nil {
-		log.Fatalf("Failed to insert task: %v", err)
+		return err
 	}
+	return nil
 }
 
 // GetAllTasks retrieves all tasks from the MongoDB collection
-func (ts *TaskService) GetAllTasks() []models.Task {
+func (ts *TaskService) GetAllTasks() ([]models.Task, error) {
 	cursor, err := ts.taskCollection.Find(context.TODO(), bson.D{})
 	if err != nil {
-		log.Fatalf("Failed to find tasks: %v", err)
+		return nil, err
 	}
+
 	var tasks []models.Task
 	if err := cursor.All(context.TODO(), &tasks); err != nil {
-		log.Fatalf("Failed to decode tasks: %v", err)
+		return nil, err
 	}
-	return tasks
+	return tasks, nil
 }
 
 // GetTaskByTitle retrieves a task by its title
 func (ts *TaskService) GetTaskByTitle(title string) (models.Task, error) {
 	var task models.Task
-	err := ts.taskCollection.FindOne(context.TODO(), bson.M{"title": title}).Decode(&task)
+	filter := bson.M{"title": title}
+	err := ts.taskCollection.FindOne(context.TODO(), filter).Decode(&task)
 	return task, err
 }
 
 // UpdateTask updates a task in the MongoDB collection
 func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (*mongo.UpdateResult, error) {
-	filter := bson.M{"title": title}
+	task, err := ts.GetTaskByTitle(title)
+	if err != nil {
+		return nil, err
+	}
+
+	var Title, Description, Priority, Status string
+
+	if updatedTask.Title != "" {
+		Title = updatedTask.Title
+	} else {
+		Title = task.Title
+
+	}
+
+	if updatedTask.Description != "" {
+		Description = updatedTask.Description
+	} else {
+		Description = task.Description
+	}
+
+	if updatedTask.Priority != "" {
+		Priority = updatedTask.Priority
+
+	} else {
+		Priority = task.Priority
+	}
+
+	if updatedTask.Status != "" {
+		Status = updatedTask.Status
+
+	} else {
+		Status = task.Status
+	}
+
+	// Define the update object
 	update := bson.M{
 		"$set": bson.M{
-			"title":       updatedTask.Title,
-			"description": updatedTask.Description,
-			"priority":    updatedTask.Priority,
-			"status":      updatedTask.Status,
+			"title":       Title,
+			"description": Description,
+			"priority":    Priority,
+			"status":      Status,
 		},
 	}
-	return ts.taskCollection.UpdateOne(context.TODO(), filter, update)
+
+	filter := bson.M{"title": title}
+
+	updated, err := ts.taskCollection.UpdateOne(context.TODO(), filter, update)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
 }
 
 // DeleteTask removes a task from the MongoDB collection

@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
-	"tskmgr/models"
 	"tskmgr/data"
+	"tskmgr/models"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +22,11 @@ func NewTaskController(service *data.TaskService) *TaskController {
 
 // ViewTasks handles GET /tasks to retrieve all tasks
 func (tc *TaskController) ViewTasks(c *gin.Context) {
-	tasks := tc.taskService.GetAllTasks()
+	tasks,err := tc.taskService.GetAllTasks()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, tasks)
 }
 
@@ -34,16 +39,24 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 	}
 	
 	newTask.Id = primitive.NewObjectID()
-	tc.taskService.CreateTask(newTask)
+	err := tc.taskService.CreateTask(newTask)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, newTask)
 }
 
 // GetTaskByID handles GET /tasks/:id to retrieve a task by ID
-func (tc *TaskController) GetTaskByID(c *gin.Context) {
+func (tc *TaskController) GetTaskByTitle(c *gin.Context) {
 	title := c.Param("title")
 
 	task, err := tc.taskService.GetTaskByTitle(title)
 	if err != nil {
+		log.Println("-------------")
+		log.Println("-------------")
+		log.Println("-------------")
+		log.Println(task)
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}

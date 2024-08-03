@@ -3,25 +3,25 @@ package controllers
 import (
 	// "log"
 	"net/http"
-	"strconv"
 	"tskmgr/data"
 	"tskmgr/models"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Taskcontroller struct {
-	service data.Taskcollection // Counter for generating unique task IDs
+	coll data.Taskcollection
 }
 
-func NewTaskController(serv data.Taskcollection) *Taskcontroller {
+func NewTaskController(cur_col data.Taskcollection) *Taskcontroller {
 	return &Taskcontroller{
-		service: serv,
+		coll: cur_col,
 	}
 }
 
 func (tc *Taskcontroller) ViewTasks(c *gin.Context) {
-	tasks := tc.service.ListOfTasks()
+	tasks := tc.coll.ListOfTasks()
 	c.JSON(http.StatusOK, tasks)
 }
 
@@ -32,37 +32,31 @@ func (tc *Taskcontroller) CreateTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON provided"})
 		return
 	}
+	
+	newTask.Id = primitive.NewObjectID()
 
-	tc.service.CreateTask(newTask)
+	tc.coll.CreateTask(newTask)
 	c.JSON(http.StatusCreated, newTask)
 }
 
 // GetTaskByID handles GET /tasks/:id, returns the task with the specified ID.
 func (tc *Taskcontroller) GetTaskByID(c *gin.Context) {
-	// id := c.Param("id")
-	// taskID, err := strconv.Atoi(id)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-	// 	return
-	// }
+	title := c.Param("title")
 
-	// // task, exists := tc.service.GetTaskByID(taskID)
-	// if !exists {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
-	// 	return
-	// }
+	task, err := tc.coll.GetTaskByTitle(title)
+	
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
-	// c.JSON(http.StatusOK, task)
+	c.JSON(http.StatusOK, task)
 }
 
 // UpdateTask handles PUT /tasks/:id, updates the task with the specified ID.
 func (tc *Taskcontroller) UpdateTask(c *gin.Context) {
-	id := c.Param("id")
-	taskID, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-		return
-	}
+	title := c.Param("title")
+	
 
 	var updatedTask models.Task
 	if err := c.ShouldBindJSON(&updatedTask); err != nil {
@@ -70,25 +64,20 @@ func (tc *Taskcontroller) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	err = tc.service.UpdateTask(taskID, updatedTask)
+	updateResult, err := tc.coll.UpdateTask(title, updatedTask)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedTask)
+	c.JSON(http.StatusOK, updateResult)
 }
 
 // DeleteTask handles DELETE /tasks/:id, deletes the task with the specified ID.
 func (tc *Taskcontroller) DeleteTask(c *gin.Context) {
-	id := c.Param("id")
-	taskID, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-		return
-	}
+	title := c.Param("title")
 
-	err = tc.service.DeleteTask(taskID)
+	err := tc.coll.DeleteTask(title)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

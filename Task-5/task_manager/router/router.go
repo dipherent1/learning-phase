@@ -14,9 +14,9 @@ func Route(tc *controllers.Taskcontroller) *gin.Engine {
 	// Define the API endpoints and their corresponding handlers
 	router.GET("/tasks", tc.ViewTasks)         // Retrieve all tasks
 	router.POST("/tasks", tc.CreateTask)       // Create a new task
-	router.GET("/tasks/:id", tc.GetTaskByID)   // Retrieve a task by ID
-	router.PUT("/tasks/:id", tc.UpdateTask)    // Update a task by ID
-	router.DELETE("/tasks/:id", tc.DeleteTask) // Delete a task by ID
+	router.GET("/tasks/:title", tc.GetTaskByID)   // Retrieve a task by ID
+	router.PUT("/tasks/:title", tc.UpdateTask)    // Update a task by ID
+	router.DELETE("/tasks/:title", tc.DeleteTask) // Delete a task by ID
 
 	return router
 }

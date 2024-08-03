@@ -11,6 +11,7 @@ import (
 	"tskmgr/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,16 +20,19 @@ type Taskcollection struct {
 	Tasks *mongo.Collection // Counter for generating unique task IDs
 }
 
-
 func NewTaskCollection(tasks *mongo.Collection) *Taskcollection {
 	return &Taskcollection{Tasks: tasks}
 }
 
 func (t *Taskcollection) CreateTask(task models.Task) {
-	// var task_collection = cliento.Client.Database("taskmgr").Collection("task")
-	// t.Count++
-	// task.ID = t.Count
-	// t.Tasks[task.ID] = task
+	coll := t.Tasks
+	task.Id = primitive.NewObjectID()
+	results, err := coll.InsertOne(context.TODO(), task)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println(results)
 
 }
 
@@ -50,42 +54,76 @@ func (t *Taskcollection) ListOfTasks() []models.Task {
 }
 
 // GetTaskByID returns the task with the specified ID.
-func (t *Taskcollection) GetTaskByID(id int) {
-	// task, exists := t.Tasks[id]
-	// return task, exists
-	return
+func (t *Taskcollection) GetTaskByTitle(title string) (models.Task, error) {
+	coll := t.Tasks
+	filter := bson.M{"title": title}
+	var result models.Task
+	err := coll.FindOne(context.TODO(), filter).Decode(&result)
+	// log.Println(result)
+	return result, err
 }
 
 // UpdateTask updates an existing task with new details.
-func (t *Taskcollection) UpdateTask(id int, updatedTask models.Task) error {
-	// task, exists := t.Tasks[id]
-	// if !exists {
-	// 	return errors.New("task not found")
-	// }
+func (t *Taskcollection) UpdateTask(title string, updatedTask models.Task) (*mongo.UpdateResult, error) {
+	coll := t.Tasks
 
-	// if updatedTask.Title != "" {
-	// 	task.Title = updatedTask.Title
-	// }
-	// if updatedTask.Description != "" {
-	// 	task.Description = updatedTask.Description
-	// }
-	// if updatedTask.Priority != "" {
-	// 	task.Priority = updatedTask.Priority
-	// }
-	// if updatedTask.Status != "" {
-	// 	task.Status = updatedTask.Status
-	// }
+	// Filter to find the task by title
+	filter := bson.M{"title": title}
 
-	// t.Tasks[id] = task
-	return nil
+	// Find the existing task
+	var result models.Task
+	err := coll.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update fields only if they are provided in updatedTask
+	Title := result.Title
+	Description := result.Description
+	Priority := result.Priority
+	Status := result.Status
+
+	if updatedTask.Title != "" {
+		Title = updatedTask.Title
+	}
+
+	if updatedTask.Description != "" {
+		Description = updatedTask.Description
+	}
+
+	if updatedTask.Priority != "" {
+		Priority = updatedTask.Priority
+	}
+
+	if updatedTask.Status != "" {
+		Status = updatedTask.Status
+	}
+
+	// Define the update object
+	update := bson.M{
+		"$set": bson.M{
+			"title":       Title,
+			"description": Description,
+			"priority":    Priority,
+			"status":      Status,
+		},
+	}
+
+	// Perform the update
+	updateResult, err := coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return nil, err
+	}
+
+	return updateResult, nil
 }
 
+
 // DeleteTask removes a task from the in-memory store.
-func (t *Taskcollection) DeleteTask(id int) error {
-	// _, exists := t.Tasks[id]
-	// if !exists {
-	// 	return errors.New("task not found")
-	// }
-	// delete(t.Tasks, id)
-	return nil
+func (t *Taskcollection) DeleteTask(title string) error {
+	coll := t.Tasks
+	filter := bson.M{"title": title}
+	_, err := coll.DeleteOne(context.TODO(), filter)
+
+	return err
 }

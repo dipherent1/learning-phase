@@ -1,97 +1,133 @@
-# Task Management REST API
 
-## Overview
+# Task Management API with MongoDB
 
-This project is a simple Task Management REST API implemented using the Go programming language and the Gin framework. It supports basic CRUD operations for managing tasks, including creating, retrieving, updating, and deleting tasks.
+## Project Overview
 
-## Table of Contents
+This project extends an existing Task Management API by integrating MongoDB for persistent data storage using the Mongo Go Driver. The API provides CRUD operations for managing tasks and ensures data persistence across API restarts.
 
-- [Features](#features)
-- [Folder Structure](#folder-structure)
-- [Setup and Installation](#setup-and-installation)
-- [Running the Application](#running-the-application)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Technologies Used](#technologies-used)
-- [Contributing](#contributing)
-- [License](#license)
+## Project Structure
 
-## Features
-
-- **Create Task**: Add a new task with a title, description, priority, and status.
-- **View Tasks**: Retrieve a list of all tasks.
-- **View Task by ID**: Retrieve details of a specific task by its ID.
-- **Update Task**: Update the details of an existing task.
-- **Delete Task**: Remove a task by its ID.
-
-## Folder Structure
-
-
-My apologies for the confusion. Here's the README.md content formatted as markdown text:
-
-markdown
-Copy code
-# Task Management REST API
-
-## Overview
-
-This project is a simple Task Management REST API implemented using the Go programming language and the Gin framework. It supports basic CRUD operations for managing tasks, including creating, retrieving, updating, and deleting tasks.
-
-## Table of Contents
-
-- [Features](#features)
-- [Folder Structure](#folder-structure)
-- [Setup and Installation](#setup-and-installation)
-
-
-## Features
-
-- **Create Task**: Add a new task with a title, description, priority, and status.
-- **View Tasks**: Retrieve a list of all tasks.
-- **View Task by ID**: Retrieve details of a specific task by its ID.
-- **Update Task**: Update the details of an existing task.
-- **Delete Task**: Remove a task by its ID.
-
-## Folder Structure
-
+```
 task_manager/
 ├── main.go
+├── config/
+│   └── config.go
 ├── controllers/
-│ └── task_controller.go
+│   └── task_controller.go
 ├── models/
-│ └── task.go
-├── data/
-│ └── task_service.go
+│   └── task.go
+├── services/
+│   └── task_service.go
 ├── router/
-│ └── router.go
+│   └── router.go
 ├── docs/
-│ └── api_documentation.md
+│   └── api_documentation.md
 └── go.mod
+```
 
+### Key Components
 
-### File Descriptions
+- **main.go**: Entry point of the application. Initializes the MongoDB connection and starts the Gin server.
+- **config/**: Contains configuration logic, including MongoDB connection settings.
+- **controllers/**: Handles incoming HTTP requests and invokes appropriate service methods.
+- **models/**: Defines the data structures used in the application.
+- **services/**: Contains business logic and data manipulation functions. Implements MongoDB operations.
+- **router/**: Sets up the Gin router and defines the API routes.
+- **docs/**: Contains project documentation.
 
-- **main.go**: The main entry point of the application that initializes the server and routes.
-- **controllers/task_controller.go**: Contains the HTTP request handlers for each endpoint, orchestrating the data flow between the client and the data layer.
-- **models/task.go**: Defines the `Task` struct, representing the structure of a task entity in the application.
-- **data/task_service.go**: Implements the business logic and manages the in-memory data store, providing functions for CRUD operations on tasks.
-- **router/router.go**: Sets up the Gin router and defines the routing configuration for the API.
-- **docs/api_documentation.md**: Contains detailed documentation of the API endpoints, including request and response formats.
-- **go.mod**: The Go module file which defines the module's dependencies.
-
-## Setup and Installation
+## Getting Started
 
 ### Prerequisites
 
-- [Go](https://golang.org/doc/install) (version 1.16 or higher)
-- [Gin Framework](https://github.com/gin-gonic/gin)
+- Go (version 1.16 or later)
+- MongoDB (either locally or using a cloud provider)
+- Gin (Go web framework)
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/dipherent1/learning-phase/tree/main/Task-4/task_manager
-   cd task_manager```
-for more info visit https://documenter.getpostman.com/view/37344769/2sA3kdBdGC
+1. **Clone the Repository**
 
-   
+   ```sh
+   git clone <repository-url>
+   cd task_manager
+   ```
+
+2. **Set Up Environment Variables**
+
+   Create a `.env` file in the root directory with the following content:
+
+   ```
+   MONGODB_URI=<your-mongodb-uri>
+   ```
+
+3. **Install Dependencies**
+
+   ```sh
+   go mod tidy
+   ```
+
+4. **Run the Application**
+
+   ```sh
+   go run main.go
+   ```
+
+## API Endpoints
+
+### List All Tasks
+
+- **URL**: `/tasks`
+- **Method**: `GET`
+- **Response**: List of all tasks.
+
+### Create a New Task
+
+- **URL**: `/tasks`
+- **Method**: `POST`
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Task Title",
+    "description": "Task Description",
+    "priority": "High",
+    "status": "Pending"
+  }
+  ```
+
+- **Response**: Created task object.
+
+### Get Task by Title
+
+- **URL**: `/tasks/:title`
+- **Method**: `GET`
+- **Response**: Task object with the specified title.
+
+### Update Task
+
+- **URL**: `/tasks/:title`
+- **Method**: `PUT`
+- **Request Body**: Fields to update in the task.
+
+- **Response**: Update result object.
+
+### Delete Task
+
+- **URL**: `/tasks/:title`
+- **Method**: `DELETE`
+- **Response**: Deletion success message.
+
+## Configuration
+
+### MongoDB Connection
+
+The MongoDB connection is configured in the `config/config.go` file. The connection URI is retrieved from the environment variables. Make sure to set the `MONGODB_URI` environment variable before running the application.
+
+## Error Handling
+
+Proper error handling is implemented throughout the application, especially for MongoDB operations. Errors are logged, and appropriate HTTP status codes are returned.
+
+## Testing
+
+To test the API endpoints, use tools like Postman or cURL. Verify that tasks can be created, retrieved, updated, and deleted successfully. You can also query the MongoDB database directly or use MongoDB Compass to ensure data correctness.
+

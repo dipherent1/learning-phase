@@ -1,11 +1,6 @@
 package data
 
 import (
-	// "errors"
-	// "fmt"
-	// "fmt"
-	// "tskmgr/config"
-	// "tskmgr/config"
 	"context"
 	"log"
 	"tskmgr/models"
@@ -15,115 +10,61 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Taskcollection manages tasks in an in-memory store.
-type Taskcollection struct {
-	Tasks *mongo.Collection // Counter for generating unique task IDs
+// TaskService provides task management services
+type TaskService struct {
+	taskCollection *mongo.Collection
 }
 
-func NewTaskCollection(tasks *mongo.Collection) *Taskcollection {
-	return &Taskcollection{Tasks: tasks}
+// NewTaskService initializes a new TaskService
+func NewTaskService(collection *mongo.Collection) *TaskService {
+	return &TaskService{taskCollection: collection}
 }
 
-func (t *Taskcollection) CreateTask(task models.Task) {
-	coll := t.Tasks
+// CreateTask inserts a new task into the MongoDB collection
+func (ts *TaskService) CreateTask(task models.Task) {
 	task.Id = primitive.NewObjectID()
-	results, err := coll.InsertOne(context.TODO(), task)
+	_, err := ts.taskCollection.InsertOne(context.TODO(), task)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to insert task: %v", err)
 	}
-
-	log.Println(results)
-
 }
 
-// ListOfTasks returns a list of all tasks.
-func (t *Taskcollection) ListOfTasks() []models.Task {
-	coll := t.Tasks
-	cursor, err := coll.Find(context.TODO(), bson.D{})
+// GetAllTasks retrieves all tasks from the MongoDB collection
+func (ts *TaskService) GetAllTasks() []models.Task {
+	cursor, err := ts.taskCollection.Find(context.TODO(), bson.D{})
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to find tasks: %v", err)
 	}
-	// Unpacks the cursor into a slice
-	var results []models.Task
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		panic(err)
+	var tasks []models.Task
+	if err := cursor.All(context.TODO(), &tasks); err != nil {
+		log.Fatalf("Failed to decode tasks: %v", err)
 	}
-
-	log.Println(results)
-	return results
+	return tasks
 }
 
-// GetTaskByID returns the task with the specified ID.
-func (t *Taskcollection) GetTaskByTitle(title string) (models.Task, error) {
-	coll := t.Tasks
+// GetTaskByTitle retrieves a task by its title
+func (ts *TaskService) GetTaskByTitle(title string) (models.Task, error) {
+	var task models.Task
+	err := ts.taskCollection.FindOne(context.TODO(), bson.M{"title": title}).Decode(&task)
+	return task, err
+}
+
+// UpdateTask updates a task in the MongoDB collection
+func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (*mongo.UpdateResult, error) {
 	filter := bson.M{"title": title}
-	var result models.Task
-	err := coll.FindOne(context.TODO(), filter).Decode(&result)
-	// log.Println(result)
-	return result, err
-}
-
-// UpdateTask updates an existing task with new details.
-func (t *Taskcollection) UpdateTask(title string, updatedTask models.Task) (*mongo.UpdateResult, error) {
-	coll := t.Tasks
-
-	// Filter to find the task by title
-	filter := bson.M{"title": title}
-
-	// Find the existing task
-	var result models.Task
-	err := coll.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-
-	// Update fields only if they are provided in updatedTask
-	Title := result.Title
-	Description := result.Description
-	Priority := result.Priority
-	Status := result.Status
-
-	if updatedTask.Title != "" {
-		Title = updatedTask.Title
-	}
-
-	if updatedTask.Description != "" {
-		Description = updatedTask.Description
-	}
-
-	if updatedTask.Priority != "" {
-		Priority = updatedTask.Priority
-	}
-
-	if updatedTask.Status != "" {
-		Status = updatedTask.Status
-	}
-
-	// Define the update object
 	update := bson.M{
 		"$set": bson.M{
-			"title":       Title,
-			"description": Description,
-			"priority":    Priority,
-			"status":      Status,
+			"title":       updatedTask.Title,
+			"description": updatedTask.Description,
+			"priority":    updatedTask.Priority,
+			"status":      updatedTask.Status,
 		},
 	}
-
-	// Perform the update
-	updateResult, err := coll.UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		return nil, err
-	}
-
-	return updateResult, nil
+	return ts.taskCollection.UpdateOne(context.TODO(), filter, update)
 }
 
-
-// DeleteTask removes a task from the in-memory store.
-func (t *Taskcollection) DeleteTask(title string) error {
-	coll := t.Tasks
-	filter := bson.M{"title": title}
-	_, err := coll.DeleteOne(context.TODO(), filter)
-
+// DeleteTask removes a task from the MongoDB collection
+func (ts *TaskService) DeleteTask(title string) error {
+	_, err := ts.taskCollection.DeleteOne(context.TODO(), bson.M{"title": title})
 	return err
 }

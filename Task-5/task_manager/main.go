@@ -2,34 +2,36 @@ package main
 
 import (
 	"context"
-
 	"log"
 	"tskmgr/config"
 	"tskmgr/controllers"
 	"tskmgr/data"
-
 	"tskmgr/router"
 )
 
 func main() {
-
+	// Initialize MongoDB connection
 	client := config.ConnectDB()
-
 	if client == nil {
-		log.Fatal("client is not initialized")
+		log.Fatal("Failed to initialize MongoDB client")
 	}
 
-	tasks := data.NewTaskCollection(client.Database("Taskmgr").Collection("Tasks"))
+	// Create a new task collection service
+	taskService := data.NewTaskService(client.Database("TaskManager").Collection("Tasks"))
 
-	taskcontroller := controllers.NewTaskController(*tasks)
+	// Initialize task controller with the task service
+	taskController := controllers.NewTaskController(taskService)
 
+	// Ensure the MongoDB client disconnects when the application exits
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	r := router.Route(taskcontroller)
-	r.Run(":8080")
-	log.Println("I am here end")
+	// Set up router and start the server
+	r := router.SetupRouter(taskController)
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

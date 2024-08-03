@@ -13,8 +13,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+// MongoClient holds the MongoDB client instance
 var MongoClient *mongo.Client
 
+// GetURI retrieves the MongoDB URI from environment variables
 func GetURI() string {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -28,6 +30,7 @@ func GetURI() string {
 	return uri
 }
 
+// ping checks the connection to the MongoDB server
 func ping(client *mongo.Client, ctx context.Context) error {
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
 		return err
@@ -36,7 +39,7 @@ func ping(client *mongo.Client, ctx context.Context) error {
 	return nil
 }
 
-// ConnectDB initializes the MongoDB client and returns it.
+// ConnectDB initializes and returns the MongoDB client
 func ConnectDB() *mongo.Client {
 	uri := GetURI()
 
@@ -49,16 +52,12 @@ func ConnectDB() *mongo.Client {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-
-	// Ping the database to verify connection
+	// Verify the connection
 	err = ping(client, ctx)
 	if err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
 
 	MongoClient = client
-	if MongoClient == nil {
-		log.Fatal("MongoClient is nil after initialization")
-	}
 	return client
 }

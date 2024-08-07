@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	// "log"
 	"tskmgr/models"
 
@@ -56,11 +57,16 @@ func (ts *TaskService) GetTaskByTitle(title string) (models.Task, error) {
 }
 
 // UpdateTask updates a task in the MongoDB collection
-func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (models.Task, error) {
+func (ts *TaskService) UpdateTask(title string, updatedTask models.Task, role string, userid primitive.ObjectID) (models.Task, error) {
 	task, err := ts.GetTaskByTitle(title)
 	if err != nil {
 		return models.Task{}, err
 	}
+
+	if role == "user" && task.UserId != userid{
+		return models.Task{}, errors.New("can not access task")
+	}
+
 
 	var Title, Description, Priority, Status string
 	
@@ -118,7 +124,15 @@ func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (models
 }
 
 // DeleteTask removes a task from the MongoDB collection
-func (ts *TaskService) DeleteTask(title string) error {
-	_, err := ts.taskCollection.DeleteOne(context.TODO(), bson.M{"title": title})
+func (ts *TaskService) DeleteTask(title string, role string, userid primitive.ObjectID) error {
+	task, err := ts.GetTaskByTitle(title)
+	if err != nil {
+		return err
+	}
+	
+	if role == "user" && task.UserId != userid{
+		return errors.New("can not access task")
+	}
+	_, err = ts.taskCollection.DeleteOne(context.TODO(), bson.M{"title": title})
 	return err
 }

@@ -87,10 +87,8 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if userClaims.UserRole != "admin" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "only admins can update tasks"})
-		return
-	}
+	role := userClaims.UserRole
+	userid := userClaims.UserId
 
 	title := c.Param("title")
 	var updatedTask models.Task
@@ -99,7 +97,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	updateResult, err := tc.taskService.UpdateTask(title, updatedTask)
+	updateResult, err := tc.taskService.UpdateTask(title, updatedTask,role,userid)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -123,14 +121,12 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	if userClaims.UserRole != "admin" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "only admins can delete tasks"})
-		return
-	}
+	role := userClaims.UserRole
+	userid := userClaims.UserId
 
 	title := c.Param("title")
 
-	err := tc.taskService.DeleteTask(title)
+	err := tc.taskService.DeleteTask(title,role,userid)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

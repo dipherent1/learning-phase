@@ -21,14 +21,16 @@ func NewTaskService(collection *mongo.Collection) *TaskService {
 }
 
 // CreateTask inserts a new task into the MongoDB collection
-func (ts *TaskService) CreateTask(task models.Task) error {
+func (ts *TaskService) CreateTask(task models.Task, userid primitive.ObjectID) (models.Task, error ){
 	task.Id = primitive.NewObjectID()
+	task.UserId = userid
+
 	_, err := ts.taskCollection.InsertOne(context.TODO(), task)
 
 	if err != nil {
-		return err
+		return models.Task{},err
 	}
-	return nil
+	return task,nil
 }
 
 // GetAllTasks retrieves all tasks from the MongoDB collection

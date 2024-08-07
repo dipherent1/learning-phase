@@ -6,7 +6,6 @@ import (
 	"tskmgr/models"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // TaskController handles HTTP requests for tasks
@@ -32,14 +31,26 @@ func (tc *TaskController) ViewTasks(c *gin.Context) {
 
 // CreateTask handles POST /tasks to create a new task
 func (tc *TaskController) CreateTask(c *gin.Context) {
+	claim, exists := c.Get("claim")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "claim not set"})
+		return
+	}
+
+	userClaims, ok := claim.(models.Claims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claim type"})
+		return
+	}
+
 	var newTask models.Task
 	if err := c.ShouldBindJSON(&newTask); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON provided"})
 		return
 	}
 
-	newTask.Id = primitive.NewObjectID()
-	err := tc.taskService.CreateTask(newTask)
+	userid := userClaims.UserId
+	newTask, err := tc.taskService.CreateTask(newTask, userid)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -93,7 +104,6 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-	
 
 	c.JSON(http.StatusOK, updateResult)
 }
@@ -128,4 +138,3 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
 }
-

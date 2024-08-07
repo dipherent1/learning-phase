@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"tskmgr/data"
 	"tskmgr/models"
@@ -22,7 +21,8 @@ func NewTaskController(service *data.TaskService) *TaskController {
 
 // ViewTasks handles GET /tasks to retrieve all tasks
 func (tc *TaskController) ViewTasks(c *gin.Context) {
-	tasks,err := tc.taskService.GetAllTasks()
+
+	tasks, err := tc.taskService.GetAllTasks()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -37,7 +37,7 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON provided"})
 		return
 	}
-	
+
 	newTask.Id = primitive.NewObjectID()
 	err := tc.taskService.CreateTask(newTask)
 	if err != nil {
@@ -53,10 +53,7 @@ func (tc *TaskController) GetTaskByTitle(c *gin.Context) {
 
 	task, err := tc.taskService.GetTaskByTitle(title)
 	if err != nil {
-		log.Println("-------------")
-		log.Println("-------------")
-		log.Println("-------------")
-		log.Println(task)
+
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -66,6 +63,24 @@ func (tc *TaskController) GetTaskByTitle(c *gin.Context) {
 
 // UpdateTask handles PUT /tasks/:id to update a task by ID
 func (tc *TaskController) UpdateTask(c *gin.Context) {
+	claim, exists := c.Get("claim")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "claim not set"})
+		return
+	}
+
+	// Type assertion to your custom Claims type
+	userClaims, ok := claim.(models.Claims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claim type"})
+		return
+	}
+
+	if userClaims.UserRole != "admin" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "only admins can update tasks"})
+		return
+	}
+
 	title := c.Param("title")
 	var updatedTask models.Task
 	if err := c.ShouldBindJSON(&updatedTask); err != nil {
@@ -78,12 +93,31 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+	
 
 	c.JSON(http.StatusOK, updateResult)
 }
 
 // DeleteTask handles DELETE /tasks/:id to delete a task by ID
 func (tc *TaskController) DeleteTask(c *gin.Context) {
+	claim, exists := c.Get("claim")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "claim not set"})
+		return
+	}
+
+	// Type assertion to your custom Claims type
+	userClaims, ok := claim.(models.Claims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claim type"})
+		return
+	}
+
+	if userClaims.UserRole != "admin" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "only admins can delete tasks"})
+		return
+	}
+
 	title := c.Param("title")
 
 	err := tc.taskService.DeleteTask(title)
@@ -94,3 +128,4 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
 }
+

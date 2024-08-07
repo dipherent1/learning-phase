@@ -54,14 +54,14 @@ func (ts *TaskService) GetTaskByTitle(title string) (models.Task, error) {
 }
 
 // UpdateTask updates a task in the MongoDB collection
-func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (*mongo.UpdateResult, error) {
+func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (models.Task, error) {
 	task, err := ts.GetTaskByTitle(title)
 	if err != nil {
-		return nil, err
+		return models.Task{}, err
 	}
 
 	var Title, Description, Priority, Status string
-
+	
 	if updatedTask.Title != "" {
 		Title = updatedTask.Title
 	} else {
@@ -90,7 +90,7 @@ func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (*mongo
 	}
 
 	// Define the update object
-	update := bson.M{
+	updatedData := bson.M{
 		"$set": bson.M{
 			"title":       Title,
 			"description": Description,
@@ -101,13 +101,18 @@ func (ts *TaskService) UpdateTask(title string, updatedTask models.Task) (*mongo
 
 	filter := bson.M{"title": title}
 
-	updated, err := ts.taskCollection.UpdateOne(context.TODO(), filter, update)
+	_, err = ts.taskCollection.UpdateOne(context.TODO(), filter, updatedData)
 
 	if err != nil {
-		return nil, err
+		return models.Task{}, err
+	}
+	
+	updatedTaskData, err := ts.GetTaskByTitle(Title)
+	if err != nil {
+		return models.Task{}, err
 	}
 
-	return updated, nil
+	return updatedTaskData, nil
 }
 
 // DeleteTask removes a task from the MongoDB collection

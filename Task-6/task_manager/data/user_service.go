@@ -52,7 +52,7 @@ func (d *UserData) SignupService(user *models.User) error {
 
 	if exists {
 
-		return errors.New("user with this email already exists")
+		return errors.New("user with this username already exists")
 	}
 
 	user.ID = primitive.NewObjectID()
@@ -121,7 +121,34 @@ func (d *UserData) GetAllUsers() ([]models.User, error) {
 	return users, nil
 
 }
-func (uc *UserData) ChangeRoleUser(username string) {
-	// filter := bson
+func (uc *UserData) ChangeRoleUser(username string) error {
+	var user models.User
+	filter := bson.M{"username": username}
+	err := uc.Users.FindOne(context.TODO(), filter).Decode(&user)
 
+	if err != nil {
+		return err
+	}
+
+	var role string
+	if user.Role == "user" {
+		role = "admin"
+
+	} else {
+		role = "user"
+	}
+
+	updatedrole := bson.M{
+		"$set": bson.M{
+			"role": role,
+		},
+	}
+
+	_, err = uc.Users.UpdateOne(context.TODO(), filter, updatedrole)
+	
+	if err != nil {
+		return err
+	}
+
+	return  nil
 }

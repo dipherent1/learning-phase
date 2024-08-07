@@ -64,6 +64,13 @@ func (uc *UserController) GetUsers(c *gin.Context) {
 
 func (uc *UserController) ChangeRole(c *gin.Context){
 	username := c.Param("username")	
-	uc.userdata.ChangeRoleUser(username)
+	err := uc.userdata.ChangeRoleUser(username)
+	
+	if err!=nil{
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
+	c.JSON(http.StatusOK,gin.H{"message": "role toggled successfuly"})
+	
 }

@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	"time"
 	domain "tskmgr/Domain"
 	infrastructure "tskmgr/Infrastructure"
@@ -20,7 +21,12 @@ func NewUserUsecase(repo *repositories.UserDataManipulator) *UserUsecase {
 }
 
 func (u *UserUsecase) CreateUser(user *domain.User) error {
-	err := u.MyUserRepo.Create(user)
+	//check if user already exists
+	_, err := u.MyUserRepo.GetByUsername(user.Username)
+	if err == nil {
+		return errors.New("user already exists")
+	}
+	err = u.MyUserRepo.Create(user)
 	if err != nil {
 		return err
 	}

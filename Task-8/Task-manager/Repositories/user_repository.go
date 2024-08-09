@@ -31,12 +31,8 @@ func (repo *UserDataManipulator) GetByUsername(username string) (*domain.User, e
 }
 
 func (repo *UserDataManipulator) Create(user *domain.User) error {
-	_, err := repo.GetByUsername(user.Username)
+	
 	user.UserID = primitive.NewObjectID()
-
-	if err != nil && err != mongo.ErrNoDocuments {
-		return err
-	}
 
 	hp, err := infrastructure.HashPassword(user.Password)
 	if err != nil {

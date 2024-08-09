@@ -23,6 +23,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	
 	usercoll := client.Database("TaskManager").Collection("Users")
 	taskcoll := client.Database("TaskManager").Collection("Tasks")
 

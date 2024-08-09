@@ -29,3 +29,29 @@ type Task struct {
 	Priority    string             `json:"priority" bson:"priority"`       // Priority level of the task
 	Status      string             `json:"status" bson:"status"`           // Current status of the task (e.g., "pending", "completed")
 }
+//generate all the interfaces for user repository
+type UserRepository interface {
+	GetByUsername(username string) (*User, error)
+	Create(user *User) error
+}
+
+//generate all the interfaces for user usecase
+type UserUsecase interface {
+	CreateUser(user *User) error
+	LogUser(user *User) (string, error)
+}
+
+//generate all the interfaces for task repository
+type TaskRepository interface {
+	Create(task *Task) (*Task, error)
+	GetByTitle(title string) (*Task, error)
+	GetAllTasks() ([]Task, error)
+}
+
+//gerate all the interfaces for task usecase
+type TaskUsecase interface {
+	CreateTask(task *Task) (*Task, error)
+	GetAllTasks() ([]Task, error)
+	GetTaskByTitle(title string) (*Task, error)
+}
+

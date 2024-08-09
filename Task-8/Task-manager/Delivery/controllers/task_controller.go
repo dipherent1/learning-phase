@@ -7,16 +7,15 @@ import (
 	usecases "tskmgr/Usecases"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type taskcontroller struct {
-	MyTaskUsecase usecases.TaskUsecase
+type TaskController struct {
+	MyTaskUsecase *usecases.TaskUsecase
 }
 
-func NewTaskController(coll *mongo.Collection) *taskcontroller {
-	return &taskcontroller{
-		MyTaskUsecase: *usecases.NewTaskUsecase(coll),
+func NewTaskController(usecase *usecases.TaskUsecase) *TaskController {
+	return &TaskController{
+		MyTaskUsecase: usecase,
 	}
 }
 
@@ -34,7 +33,7 @@ func getclaim(c *gin.Context) (*domain.Claims, error) {
 	return &userClaims, nil
 }
 
-func (cont *taskcontroller) CreateTask(c *gin.Context) {
+func (cont *TaskController) CreateTask(c *gin.Context) {
 	claim, err := getclaim(c)
 
 	if err != nil {
@@ -60,15 +59,15 @@ func (cont *taskcontroller) CreateTask(c *gin.Context) {
 	c.JSON(http.StatusCreated, newTask)
 }
 
-func (cont *taskcontroller) GetTaskByTitle(c *gin.Context) {
+func (cont *TaskController) GetTaskByTitle(c *gin.Context) {
 
 	title := c.Param("title")
-	task,err := cont.MyTaskUsecase.GetTaskByTitle(title)
+	task, err := cont.MyTaskUsecase.GetTaskByTitle(title)
 	if err != nil {
 		c.JSON(http.StatusExpectationFailed, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusAccepted, task)
 
 }

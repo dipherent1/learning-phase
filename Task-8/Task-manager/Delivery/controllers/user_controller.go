@@ -6,50 +6,48 @@ import (
 	usecases "tskmgr/Usecases"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type usercontroller struct {
-	MyuserUsecase usecases.UserUsecase
-
+type Usercontroller struct {
+	MyuserUsecase *usecases.UserUsecase
 }
 
-func NewUserController(coll *mongo.Collection) *usercontroller {
-	return &usercontroller{
-		MyuserUsecase: *usecases.NewUserUsecase(coll),
+func NewUsercontroller(usecase *usecases.UserUsecase) *Usercontroller {
+	return &Usercontroller{
+		MyuserUsecase: usecase,
 	}
 }
 
-func (cont *usercontroller) SignupController(c *gin.Context) {
+func (cont *Usercontroller) SignupController(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	err:=cont.MyuserUsecase.CreateUser(&user)
-	if err!=nil{
-		c.JSON(400,gin.H{"error":err.Error()})
+	err := cont.MyuserUsecase.CreateUser(&user)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated,gin.H{"message":"user registered successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
 
 }
 
-func (cont *usercontroller) LoginController(c *gin.Context){
+func (cont *Usercontroller) LoginController(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	token,err := cont.MyuserUsecase.LogUser(&user)
-	if err!=nil{
-		c.JSON(400,gin.H{"error":err.Error()})
+	token, err := cont.MyuserUsecase.LogUser(&user)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200,gin.H{"message":"user logged in successfully", "token": token})
+	c.JSON(200, gin.H{"message": "user logged in successfully", "token": token})
 
 }

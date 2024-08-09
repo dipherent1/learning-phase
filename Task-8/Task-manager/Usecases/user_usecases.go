@@ -7,16 +7,15 @@ import (
 	repositories "tskmgr/Repositories"
 
 	"github.com/golang-jwt/jwt"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserUsecase struct {
 	MyUserRepo *repositories.UserDataManipulator
 }
 
-func NewUserUsecase(coll *mongo.Collection) *UserUsecase {
+func NewUserUsecase(repo *repositories.UserDataManipulator) *UserUsecase {
 	return &UserUsecase{
-		MyUserRepo: repositories.NewUserDataManipulator(coll),
+		MyUserRepo: repo,
 	}
 }
 

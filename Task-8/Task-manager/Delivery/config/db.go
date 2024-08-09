@@ -7,16 +7,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func geturi() string {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
+
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
 		log.Fatal("Set your 'MONGODB_URI' environment variable. " +
@@ -42,7 +39,7 @@ func ConnectDB() *mongo.Client {
 
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
-	
+
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}

@@ -5,9 +5,14 @@ import (
 	"log"
 	"tskmgr/Delivery/config"
 	"tskmgr/Delivery/routers"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 	client := config.ConnectDB()
 
 	defer func() {

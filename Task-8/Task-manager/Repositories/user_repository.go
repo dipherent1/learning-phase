@@ -2,49 +2,51 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	domain "tskmgr/Domain"
+	infrastructure "tskmgr/Infrastructure"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type DataMinipulator struct{
+type UserDataManipulator struct {
 	Data *mongo.Collection
 }
 
-func NewDataMinipulator (coll *mongo.Collection) *DataMinipulator{
-	return &DataMinipulator{Data : coll}
+func NewUserDataManipulator(coll *mongo.Collection) *UserDataManipulator {
+	return &UserDataManipulator{Data: coll}
 }
 
-func (repo *DataMinipulator) GetByUsername(username string) (*domain.User,error){
-	user:= &domain.User{}
-	filter := bson.M{"username":username}
+func (repo *UserDataManipulator) GetByUsername(username string) (*domain.User, error) {
+	user := &domain.User{}
+	filter := bson.M{"username": username}
 	err := repo.Data.FindOne(context.TODO(), filter).Decode(user)
 
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 
-	return user,nil
+	return user, nil
 }
 
-func (repo *DataMinipulator) Create(user *domain.User) error{
-	existinguser,err :=repo.GetByUsername(user.Username)
+func (repo *UserDataManipulator) Create(user *domain.User) error {
+	_, err := repo.GetByUsername(user.Username)
 	user.UserID = primitive.NewObjectID()
 
-	if err!=nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return err
 	}
 
-	if existinguser != nil {
-		return errors.New("username already exists")
+	hp, err := infrastructure.HashPassword(user.Password)
+	if err != nil {
+		return err
 	}
-	
-	_,err = repo.Data.InsertOne(context.TODO(),user)
-	
-	if err!=nil {
+	user.Password = hp
+
+	_, err = repo.Data.InsertOne(context.TODO(), user)
+
+	if err != nil {
 		return err
 	}
 

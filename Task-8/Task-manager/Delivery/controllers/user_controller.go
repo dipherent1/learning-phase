@@ -9,25 +9,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type controller struct {
-	MyUsecase usecases.Usecase
+type usercontroller struct {
+	MyuserUsecase usecases.UserUsecase
 
 }
 
-func NewController(coll *mongo.Collection) *controller {
-	return &controller{
-		MyUsecase: *usecases.NewUserUsecase(coll),
+func NewUserController(coll *mongo.Collection) *usercontroller {
+	return &usercontroller{
+		MyuserUsecase: *usecases.NewUserUsecase(coll),
 	}
 }
 
-func (cont *controller) SignupController(c *gin.Context) {
+func (cont *usercontroller) SignupController(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	err:=cont.MyUsecase.CreateUser(&user)
+	err:=cont.MyuserUsecase.CreateUser(&user)
 	if err!=nil{
 		c.JSON(400,gin.H{"error":err.Error()})
 		return
@@ -37,6 +37,19 @@ func (cont *controller) SignupController(c *gin.Context) {
 
 }
 
-func (cont *controller) LoginController(c *gin.Context){
-	
+func (cont *usercontroller) LoginController(c *gin.Context){
+	var user domain.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	token,err := cont.MyuserUsecase.LogUser(&user)
+	if err!=nil{
+		c.JSON(400,gin.H{"error":err.Error()})
+		return
+	}
+
+	c.JSON(200,gin.H{"message":"user logged in successfully", "token": token})
+
 }

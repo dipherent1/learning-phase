@@ -3,16 +3,15 @@ package usecases
 import (
 	"errors"
 	domain "tskmgr/Domain"
-	repositories "tskmgr/Repositories"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TaskUsecase struct {
-	MyTaskRepo *repositories.TaskDataManipulator
+	MyTaskRepo domain.TaskRepositoryInterface
 }
 
-func NewTaskUsecase(repo *repositories.TaskDataManipulator) *TaskUsecase {
+func NewTaskUsecase(repo domain.TaskRepositoryInterface) *TaskUsecase {
 	return &TaskUsecase{MyTaskRepo: repo}
 }
 
@@ -58,17 +57,17 @@ func (u *TaskUsecase) UpdateTask(userrole string, userid primitive.ObjectID, tit
 
 	//validate if user is admin or if task user id is the same as the user id
 	task, err := u.MyTaskRepo.GetByTitle(title)
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	
+
 	if userrole != "admin" && task.UserId != userid {
 		return nil, errors.New("you are not authorized to update this task")
 
 	}
 	newtask.Id = task.Id
 	newtask.UserId = task.UserId
-	
+
 	task, err = u.MyTaskRepo.UpdateTask(title, newtask)
 	if err != nil {
 		return nil, err
@@ -76,11 +75,11 @@ func (u *TaskUsecase) UpdateTask(userrole string, userid primitive.ObjectID, tit
 	return task, nil
 }
 
-//validate and delete task
+// validate and delete task
 func (u *TaskUsecase) DeleteTask(userrole string, userid primitive.ObjectID, title string) error {
 	//validate if user is admin or if task user id is the same as the user id
 	task, err := u.MyTaskRepo.GetByTitle(title)
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 	if userrole != "admin" && task.UserId != userid {

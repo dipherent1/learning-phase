@@ -3,16 +3,15 @@ package controllers
 import (
 	"net/http"
 	domain "tskmgr/Domain"
-	usecases "tskmgr/Usecases"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Usercontroller struct {
-	MyuserUsecase *usecases.UserUsecase
+	MyuserUsecase domain.UserUsecaseInterface
 }
 
-func NewUsercontroller(usecase *usecases.UserUsecase) *Usercontroller {
+func NewUsercontroller(usecase domain.UserUsecaseInterface) *Usercontroller {
 	return &Usercontroller{
 		MyuserUsecase: usecase,
 	}

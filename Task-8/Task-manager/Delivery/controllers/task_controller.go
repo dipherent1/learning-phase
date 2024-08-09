@@ -4,16 +4,15 @@ import (
 	"errors"
 	"net/http"
 	domain "tskmgr/Domain"
-	usecases "tskmgr/Usecases"
 
 	"github.com/gin-gonic/gin"
 )
 
 type TaskController struct {
-	MyTaskUsecase *usecases.TaskUsecase
+	MyTaskUsecase domain.TaskUsecaseInterface
 }
 
-func NewTaskController(usecase *usecases.TaskUsecase) *TaskController {
+func NewTaskController(usecase domain.TaskUsecaseInterface) *TaskController {
 	return &TaskController{
 		MyTaskUsecase: usecase,
 	}
@@ -102,7 +101,7 @@ func (cont *TaskController) GetUserTasks(c *gin.Context) {
 	c.JSON(http.StatusAccepted, tasks)
 }
 
-//update user task if user id is the same or user is admin
+// update user task if user id is the same or user is admin
 func (cont *TaskController) UpdateTask(c *gin.Context) {
 	claim, err := getclaim(c)
 
@@ -113,14 +112,13 @@ func (cont *TaskController) UpdateTask(c *gin.Context) {
 
 	title := c.Param("title")
 
-
 	newTask := &domain.Task{}
 	if err := c.ShouldBindJSON(newTask); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON provided"})
 		return
 	}
 
-	newTask, err = cont.MyTaskUsecase.UpdateTask(claim.UserRole,claim.UserId,title,newTask)
+	newTask, err = cont.MyTaskUsecase.UpdateTask(claim.UserRole, claim.UserId, title, newTask)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -140,12 +138,11 @@ func (cont *TaskController) DeleteTask(c *gin.Context) {
 
 	title := c.Param("title")
 
-	err = cont.MyTaskUsecase.DeleteTask(claim.UserRole,claim.UserId,title)
+	err = cont.MyTaskUsecase.DeleteTask(claim.UserRole, claim.UserId, title)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message":"task deleted"})
+	c.JSON(http.StatusCreated, gin.H{"message": "task deleted"})
 }
-

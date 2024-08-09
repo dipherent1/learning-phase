@@ -5,16 +5,15 @@ import (
 	"time"
 	domain "tskmgr/Domain"
 	infrastructure "tskmgr/Infrastructure"
-	repositories "tskmgr/Repositories"
 
 	"github.com/golang-jwt/jwt"
 )
 
 type UserUsecase struct {
-	MyUserRepo *repositories.UserDataManipulator
+	MyUserRepo domain.UserRepositoryInterface
 }
 
-func NewUserUsecase(repo *repositories.UserDataManipulator) *UserUsecase {
+func NewUserUsecase(repo domain.UserRepositoryInterface) *UserUsecase {
 	return &UserUsecase{
 		MyUserRepo: repo,
 	}

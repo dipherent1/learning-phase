@@ -71,6 +71,5 @@ type PasswordServiceInterface interface {
 
 // jwt service interface
 type JwtServiceInterface interface {
-	GenerateToken(claims *Claims) (string, error)
-	ValidateToken(tokenString string) (*Claims, error)
+	GetToken(claims *Claims) (string, error)
 }

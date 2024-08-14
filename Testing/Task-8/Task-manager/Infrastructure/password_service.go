@@ -19,7 +19,7 @@ var HashPassword = func(password string) (string, error) {
 	return hp, nil
 }
 
-func CheckPassword(existingPassword string, loginPassword string) error {
+var CheckPassword = func (existingPassword string, loginPassword string) error {
 
 	if bcrypt.CompareHashAndPassword([]byte(existingPassword), []byte(loginPassword)) != nil {
 		return errors.New("invalid password")

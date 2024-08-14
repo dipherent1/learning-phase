@@ -11,11 +11,13 @@ import (
 
 type UserUsecase struct {
 	MyUserRepo domain.UserRepositoryInterface
+	jwtservice domain.JwtServiceInterface
 }
 
 func NewUserUsecase(repo domain.UserRepositoryInterface) *UserUsecase {
 	return &UserUsecase{
 		MyUserRepo: repo,
+		jwtservice: infrastructure.NewJWTService(),
 	}
 }
 
@@ -44,7 +46,7 @@ func (u *UserUsecase) LogUser(user *domain.User) (string, error) {
 		return "", err
 	}
 
-	claims := domain.Claims{
+	claims := &domain.Claims{
 		UserId:    existinguser.UserID,
 		UserEmail: existinguser.Email,
 		Username:  existinguser.Username,
@@ -54,7 +56,7 @@ func (u *UserUsecase) LogUser(user *domain.User) (string, error) {
 		},
 	}
 
-	token, err := infrastructure.GetToken(claims)
+	token, err := u.jwtservice.GetToken(claims)
 	if err != nil {
 		return "", err
 	}

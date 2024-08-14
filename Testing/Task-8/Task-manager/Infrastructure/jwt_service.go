@@ -8,7 +8,14 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func GetToken(claim domain.Claims) (string, error) {
+type JWTService struct {
+}
+
+func NewJWTService() *JWTService {
+	return &JWTService{}
+}
+
+func (j *JWTService) GetToken(claim *domain.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	key := os.Getenv("JWT_SECRET")
 	jwtSecret := []byte(key)

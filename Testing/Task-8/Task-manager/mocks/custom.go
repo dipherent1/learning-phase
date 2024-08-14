@@ -20,8 +20,42 @@ func GetNewUser() *domain.User {
 func GetNewClaim() *domain.Claims {
 	return &domain.Claims{
 		UserId:    primitive.NewObjectID(),
-		UserEmail: "test.gmail.com",
-		Username:  "user1",
+		UserEmail: "test@gmail.com",
+		Username:  "test",
 		UserRole:  "user",
+	}
+}
+
+// get sample task data
+func GetNewTask() *domain.Task {
+	return &domain.Task{
+		Id:          primitive.NewObjectID(),
+		UserId:      primitive.NewObjectID(),
+		Title:       "test",
+		Description: "test description",
+		Priority:    "high",
+		Status:      "pending",
+	}
+}
+
+// get multiple sample task data
+func GetMultipleTask() []domain.Task {
+	return []domain.Task{
+		{
+			Id:          primitive.NewObjectID(),
+			UserId:      primitive.NewObjectID(),
+			Title:       "test1",
+			Description: "test description",
+			Priority:    "high",
+			Status:      "pending",
+		},
+		{
+			Id:          primitive.NewObjectID(),
+			UserId:      primitive.NewObjectID(),
+			Title:       "test2",
+			Description: "test description",
+			Priority:    "high",
+			Status:      "pending",
+		},
 	}
 }

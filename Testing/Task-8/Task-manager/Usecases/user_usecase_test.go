@@ -88,7 +88,9 @@ func (suite *UserUsecaseTestSuite) TestLogUser() {
 		suite.Empty(token)
 	})
 }
-
+func (suite *UserUsecaseTestSuite) TearDownSuite() {
+	suite.mockrepo.AssertExpectations(suite.T())
+}
 // setup test suite
 func TestUserUsecaseTestSuite(t *testing.T) {
 	suite.Run(t, new(UserUsecaseTestSuite))
